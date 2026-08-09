@@ -24,6 +24,18 @@ The map is an **index**, not a store. It lists the decisions made and points at 
 
 **Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** The issue tracker should have been provided to you — run `/setup-matt-pocock-skills` if not. Consult the tracker doc's "Wayfinding operations" section for how _this_ repo expresses them. If no tracker has been provided, default to the local-markdown tracker.
 
+## Roadmap handoff
+
+When the user invokes Wayfinder with a roadmap item, treat the roadmap as the portfolio index and the Wayfinder map as that item's planning detail. Do not copy the roadmap into the map or turn other roadmap rows into decision tickets.
+
+1. Find `ROADMAP.md`, load the named row, and follow its story/brief link. The full user story and acceptance criteria are primary context for naming the destination.
+2. Read the row's `Home` tracker. Create the map and every decision ticket there. If the row names several trackers but no home, stop and ask the user to choose one; never create duplicate maps.
+3. Add a `Roadmap item` link to the map's Notes and write the map URL back to the row's `Plan` field. Preserve the roadmap ID in tracker labels or the map body so either direction is discoverable.
+4. Set the portfolio status to `Planning` while fog or open decisions remain. Do not change roadmap priority or ownership; those belong to the roadmap workflow.
+5. When the map clears, append the map's context pointer to the item brief and set the portfolio status to `Ready`. The map hands off toward `/to-spec`; it does not mark the roadmap item `Done` or begin implementation.
+
+If the opening grill surfaces no fog, skip the map. Leave the item linked to its ordinary issue/brief and tell the roadmap workflow that it is already ready for downstream work.
+
 ### The map body
 
 The whole map at low resolution, loaded once per session. Open tickets are **not** listed — they are open child issues, found by query.
@@ -108,12 +120,13 @@ Two modes. Either way, **never resolve more than one ticket per session** — wi
 
 User invokes with a loose idea.
 
-1. **Name the destination.** Run a `/grilling` and `/domain-modeling` session to pin down what this map is finding its way to — the spec, decision, or change. The destination fixes the scope, so it's settled first.
-2. **Map the frontier.** Grill again, **breadth-first** this time: fan out across the whole space rather than deep on any one thread, surfacing the open decisions and the first steps takeable now. **If this surfaces no fog** — the way to the destination is already clear, the whole journey small enough for one session — you don't need a map. Stop and ask the user how they'd like to proceed.
-3. **Create the map** (label `wayfinder:map`): Destination and Notes filled in, Decisions-so-far empty, the fog sketched into **Not yet specified**.
-4. **Create the tickets you can specify now** as child issues of the map — then wire blocking edges in a **second pass** (issues need ids before they can reference each other). Wiring sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog — the **Not yet specified** section.
-5. **Fire the research subagents.** For each `research` ticket you just created, spin up a `/research` subagent to resolve it in parallel, capturing its findings on a throwaway `research/<name>` branch with a context pointer from the ticket.
-6. Stop — charting is one session's work; it hand-resolves nothing.
+1. **Load a roadmap handoff if supplied.** Read the row, brief, and home tracker first; otherwise begin from the user's loose idea.
+2. **Name the destination.** Run a `/grilling` and `/domain-modeling` session to pin down what this map is finding its way to — the spec, decision, or change. The destination fixes the scope, so it's settled first.
+3. **Map the frontier.** Grill again, **breadth-first** this time: fan out across the whole space rather than deep on any one thread, surfacing the open decisions and the first steps takeable now. **If this surfaces no fog** — the way to the destination is already clear, the whole journey small enough for one session — you don't need a map. Stop and ask the user how they'd like to proceed.
+4. **Create the map** (label `wayfinder:map`): Destination and Notes filled in, Decisions-so-far empty, the fog sketched into **Not yet specified**. Complete the roadmap write-back when applicable.
+5. **Create the tickets you can specify now** as child issues of the map — then wire blocking edges in a **second pass** (issues need ids before they can reference each other). Wiring sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog — the **Not yet specified** section.
+6. **Fire the research subagents.** For each `research` ticket you just created, spin up a `/research` subagent to resolve it in parallel, capturing its findings on a throwaway `research/<name>` branch with a context pointer from the ticket.
+7. Stop — charting is one session's work; it hand-resolves nothing.
 
 ### Work through the map
 
@@ -124,5 +137,6 @@ User invokes with a map (URL or number). A ticket is **optional** — without on
 3. Resolve it — **zoom as needed**: fetch the full body of any related or closed ticket on demand; invoke the skills the `## Notes` block names. If in doubt, use `/grilling` and `/domain-modeling`.
 4. Record the resolution: post the answer as a **resolution comment**, **close** the issue, and **append a context pointer** to the map's Decisions-so-far.
 5. Add newly-surfaced tickets (create-then-wire); graduate any fog the answer has made specifiable, clearing each graduated patch from **Not yet specified** so it lives only as its new ticket. If the answer reveals a ticket — this one or another — sits beyond the destination, **rule it out of scope** rather than resolving it on the route. If the decision invalidates other parts of the map, update or delete those tickets.
+6. If the map now has no open tickets or fog, complete its roadmap handoff when one exists: write the context pointer to the item brief, mark the portfolio item `Ready`, and stop before implementation.
 
 The user may run unblocked tickets in parallel, so expect other sessions to be editing the tracker concurrently.

@@ -26,6 +26,18 @@ The map and its tickets live on the repo's issue tracker, so wayfinder needs the
 
 The tracker is not decoration. Blocking is what renders the frontier visually in the tracker's own UI, and a tracker without native dependency links — a self-hosted Gitea, say — degrades wayfinder to inferring blockers from the map text, which works but needs closer supervision.
 
+## Starting from a product roadmap
+
+Wayfinder can accept one row from a repository-owned `ROADMAP.md` as its destination handoff. The roadmap remains the portfolio index; Wayfinder creates exactly one map on that row's home tracker and writes the map URL back to the row. It never turns the whole roadmap into a map or duplicates one map across GitHub and GitLab.
+
+| Roadmap item | What Wayfinder does |
+| --- | --- |
+| Already clear and small enough for one session | Declines to create a map and returns the item ready for downstream work |
+| Large and still foggy | Creates a map from the linked brief, marks the item `Planning`, and charts its frontier |
+| Map cleared | Writes a context pointer back to the brief, marks the item `Ready`, and hands off toward `to-spec` |
+
+This gives another teammate one low-resolution entry point: roadmap row → item brief → map → current frontier. Roadmap ownership and priority remain outside Wayfinder; ticket claims remain native tracker assignments inside the map.
+
 ## The map, the fog, and the frontier
 
 The **map** is a single issue labelled `wayfinder:map`; its tickets are its child issues. It is an **index, not a store** — a decision lives in exactly one place, its ticket, and the map only gists it and links. A session loads the map at low resolution and zooms into individual tickets on demand, which is what lets a map keep growing without every session paying for its whole history.
@@ -77,6 +89,9 @@ The frontier is built to show you what is takeable, and blocking edges are there
 **Do I have to use GitHub Issues?**
 No — any issue tracker works. GitHub is the best-supported path because its native sub-issues and blocking relationships are what make the frontier visible without opening the map; GitLab, Linear, Jira and local markdown all get used. Two honest caveats. A tracker with no native blocking means the dependency graph is inferred from text and needs manual correction. And local markdown puts the artifacts in your repo, which is not recommended: storing this material in the repo tends to lead to accidental persistence. Open-source maintainers hit the opposite problem — public trackers filling with agent-generated planning tickets — and tend to choose local markdown anyway.
 
+**Can a teammate pick an item from our product roadmap and continue it with Wayfinder?**
+Yes. Pass the roadmap ID to `/wayfinder`. It loads the linked brief, uses the row's home tracker for one canonical map, and writes the map link back to the roadmap. Another teammate follows the same row to reach the map and its current frontier. Wayfinder still plans only that one destination; the roadmap owns prioritisation across destinations.
+
 **The grilling is exhausting. Every question is three paragraphs long.**
 This is the sharpest live complaint about wayfinder and it is not resolved. The decomposition one user gave: the verbosity itself causes decision exhaustion, and the length strips out *why* a question is being asked, so you lose the chain from decision to decision as the map gets longer. The verbosity looks like a property of the current set of [models](https://www.aihero.dev/ai-coding-dictionary/model) rather than of the skill, and no fix has landed. Practitioner mitigations in circulation: run a lower [reasoning effort](https://www.aihero.dev/ai-coding-dictionary/effort), and put a plain-language instruction in your global `CLAUDE.md`. Expect to spend real thought here regardless — the amount of thinking wayfinder demands from you is not a defect, it is most of what it is for.
 
@@ -95,6 +110,7 @@ It is this skill, renamed to `wayfinder` in v1.1 and invoked as `/wayfinder`. "D
 - **Not yet specified** shrinks over time. A patch of fog that graduates into a ticket disappears from that section rather than living in both places.
 - When the opening breadth-first grill turns up no fog at all, the skill stops and tells you the effort is small enough to skip the map.
 - The session that finishes the map hands you toward a spec, not a pull request.
+- A roadmap-started map links back to exactly one roadmap item and one home tracker, and its cleared context is linked back into that item's brief.
 
 ## Where it fits
 
