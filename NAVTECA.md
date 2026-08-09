@@ -5,7 +5,7 @@ This branch is Navteca's maintained distribution of `mattpocock/skills`. It shou
 ## Branch and update policy
 
 - Keep `main` as a clean mirror of `mattpocock/skills`.
-- Publish tested Navteca behavior from the shared `navteca` branch.
+- Publish tested Navteca behavior from the shared `navteca` branch and keep it as the fork's default installation branch.
 - Develop each addition on a short-lived `navteca/*` branch and merge it into `navteca`.
 - Merge new `main` releases into `navteca`; do not routinely rebase or force-push the shared branch.
 - Send generally useful fixes upstream. Keep organization-specific integration downstream unless upstream accepts a generic extension point.
