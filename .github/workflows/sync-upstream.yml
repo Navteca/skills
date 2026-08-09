@@ -1,0 +1,77 @@
+name: Sync upstream
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 7 * * 1"
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Mirror main and propose downstream update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the downstream branch
+        uses: actions/checkout@v4
+        with:
+          ref: navteca
+          fetch-depth: 0
+
+      - name: Configure remotes and identity
+        run: |
+          git remote add upstream https://github.com/mattpocock/skills.git
+          git fetch --prune upstream main
+          git fetch --prune origin main navteca
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fast-forward the clean main mirror
+        run: git push origin upstream/main:main
+
+      - name: Merge upstream into a review branch
+        id: merge
+        run: |
+          if git merge-base --is-ancestor upstream/main origin/navteca; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git switch --create sync/upstream-main origin/navteca
+          if ! git merge --no-edit upstream/main; then
+            echo "::error::Upstream conflicts with Navteca patches. Resolve the sync manually."
+            exit 1
+          fi
+
+          git push --force-with-lease origin HEAD:sync/upstream-main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open or refresh the review pull request
+        if: steps.merge.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          existing=$(gh pr list \
+            --repo "$GITHUB_REPOSITORY" \
+            --base navteca \
+            --head sync/upstream-main \
+            --state open \
+            --json url \
+            --jq '.[0].url // empty')
+
+          if [ -n "$existing" ]; then
+            echo "Updated existing sync pull request: $existing"
+          else
+            gh pr create \
+              --repo "$GITHUB_REPOSITORY" \
+              --base navteca \
+              --head sync/upstream-main \
+              --title "chore: sync Matt Pocock skills upstream" \
+              --body "Automated downstream sync. Review conflicts, the NAVTECA.md patch inventory, promoted skill documentation, and repository checks before merging."
+          fi

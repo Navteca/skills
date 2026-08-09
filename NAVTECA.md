@@ -10,6 +10,10 @@ This branch is Navteca's maintained distribution of `mattpocock/skills`. It shou
 - Merge new `main` releases into `navteca`; do not routinely rebase or force-push the shared branch.
 - Send generally useful fixes upstream. Keep organization-specific integration downstream unless upstream accepts a generic extension point.
 
+The weekly and manually dispatchable `Sync upstream` workflow fast-forwards the clean `main` mirror, merges new upstream commits on `sync/upstream-main`, and opens a pull request into `navteca`. It never merges into the downstream branch unattended. Merge conflicts fail the workflow and require a maintainer to resolve them explicitly.
+
+`navteca` is protected: changes require a pull request, one approval, resolution of review conversations, and approval from someone other than the latest pusher. Force-pushes and branch deletion are disabled.
+
 ## Active patch inventory
 
 ### Northstar roadmap handoff for Wayfinder
@@ -23,8 +27,8 @@ This branch is Navteca's maintained distribution of `mattpocock/skills`. It shou
 
 ## Release checklist
 
-1. Fetch upstream and fast-forward mirror `main`.
-2. Merge `main` into an integration branch based on `navteca`.
-3. Resolve conflicts, update this inventory, and run validation.
-4. Merge into `navteca`, push, and test installation in one product repository.
-5. Announce behavior changes before changing the team-wide pinned reference.
+1. Review the automated `sync/upstream-main` pull request, or dispatch `Sync upstream` manually when an update cannot wait for Monday.
+2. Resolve conflicts explicitly and update this inventory when a patch changes or becomes removable.
+3. Run repository validation and review every promoted skill together with its public documentation.
+4. Obtain approval, merge into `navteca`, and test installation in one product repository.
+5. Announce behavior changes before updating the team-wide installation.
